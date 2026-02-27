@@ -7,23 +7,20 @@ const reserveBooks = async (req, res) => {
       return res.status(400).json({ msg: "bookIds must be a non-empty array" });
     }
 
-    let reservedCount = 0;
-    for (const id of bookIds) {
-      const book = await Book.findById(id);
+    const result = await Book.updateMany(
+      {
+        _id: { $in: bookIds },
+        isAvailable: true
+      },
+      {
+        $set: { isAvailable: false }
+      }
+    );
 
-      if (!book) continue;
-
-      if (!book.isAvailable) continue;
-
-      book.isAvailable = false;
-      await book.save();
-
-      reservedCount++;
-    }
 
     res.status(200).json({
       msg: "Books reserved successfully",
-      count: reservedCount,
+      count: result.modifiedCount,
     });
 
   } catch (error) {
